@@ -1,0 +1,7 @@
+[
+{
+  "directory": "/home/boris_z/cpp_yandex_study/cpp-search-server/build",
+  "command": "/usr/bin/c++ -g -o CMakeFiles/search-server.dir/main.cpp.o -c /home/boris_z/cpp_yandex_study/cpp-search-server/main.cpp",
+  "file": "/home/boris_z/cpp_yandex_study/cpp-search-server/main.cpp"
+}
+]
