@@ -13,7 +13,7 @@
 using namespace std;
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
-const double EXP = 1e-6;
+const double EPSILON = 1e-6;
 
 string ReadLine()
 {
@@ -98,15 +98,16 @@ public:
                                ComputeAverageRating(ratings),
                                status});
     }
+
     template <typename T>
-    vector<Document> FindTopDocuments(const string &raw_query, const T &status) const
+    vector<Document> FindTopDocuments(const string &raw_query, T document_predicate) const
     {
         const Query query = ParseQuery(raw_query);
-        vector<Document> matched_documents = FindAllDocuments(query, status);
+        vector<Document> matched_documents = FindAllDocuments(query, document_predicate);
         sort(matched_documents.begin(), matched_documents.end(),
              [](const Document &lhs, const Document &rhs)
              {
-                 if (abs(lhs.relevance - rhs.relevance) < EXP)
+                 if (abs(lhs.relevance - rhs.relevance) < EPSILON)
                  {
                      return lhs.rating > rhs.rating;
                  }
