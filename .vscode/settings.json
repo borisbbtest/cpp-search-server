@@ -1,5 +1,5 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
     "cmake.sourceDirectory": "${workspaceFolder}/search-server",
-    "sonarlint.pathToCompileCommands": "/home/boris_z/cpp_yandex_study/cpp-search-server/build/compile_commands.json"
+    "sonarlint.pathToCompileCommands": "/home/boris_z/CPP/cpp-search-server/search-server/build/compile_commands.json"
 }
