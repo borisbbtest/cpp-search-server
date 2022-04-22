@@ -475,7 +475,7 @@ void TestMatchDocumetsFromMatchDocument()
     }
 }
 
-void SortRelevanceAndAvrgFromFindTopDocuments()
+void SortRelevanceAndAvgFromFindTopDocuments()
 {
     SearchServer search_server;
     search_server.SetStopWords("и в на"s);
@@ -490,7 +490,7 @@ void SortRelevanceAndAvrgFromFindTopDocuments()
     ASSERT_HINT(document[2].id == 2 and document[2].rating == -1 and int(document[2].relevance * 100) == 17, "Тест: Корректное вычисление релевантности  и рейтинга , а также сортировки по релевантости ");
 }
 
-void PredicatFromFindTopDocuments()
+void PredicateFromFindTopDocuments()
 {
     SearchServer search_server;
     search_server.SetStopWords("и в на"s);
@@ -518,8 +518,8 @@ void TestSearchServer()
     RUN_TEST(TestExcludeStopWordsFromAddedDocumentContent);
     RUN_TEST(TestExcludeSentencesMinusWordsFromAddedDocumentContent);
     RUN_TEST(TestMatchDocumetsFromMatchDocument);
-    RUN_TEST(SortRelevanceAndAvrgFromFindTopDocuments);
-    RUN_TEST(PredicatFromFindTopDocuments);
+    RUN_TEST(SortRelevanceAndAvgFromFindTopDocuments);
+    RUN_TEST(PredicateFromFindTopDocuments);
     // Не забудьте вызывать остальные тесты здесь
 }
 
