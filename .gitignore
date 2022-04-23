@@ -42,3 +42,4 @@ unit-test/main.cpp
 unit-test/main
 .vscode/settings.json
 .gitignore
+constructor-search-system
