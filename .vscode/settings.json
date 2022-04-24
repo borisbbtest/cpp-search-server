@@ -1,4 +1,8 @@
 {
     "C_Cpp.errorSquiggles": "Disabled",
-    "cmake.sourceDirectory": "${workspaceFolder}/search-server"
+    "cmake.sourceDirectory": "${workspaceFolder}/search-server",
+    "files.associations": {
+        "**ansible/*.yml": "ansible",
+        "map": "cpp"
+    }
 }
