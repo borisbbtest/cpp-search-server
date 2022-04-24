@@ -466,19 +466,20 @@ void TestMatchedDocumetsFromMatchDocument()
     server.AddDocument(2, "пушистый кот ищет хозяина . особые приметы : пушистый кот хвост"s, DocumentStatus::ACTUAL, {1, 2, 3});
     server.AddDocument(3, "в парке горького найден ухоженный пёс с выразительными глазами"s, DocumentStatus::ACTUAL, {1, 2, 3});
     {
-        auto [documents_list, documents_status] = server.MatchDocument("кот -пушистый"s, 2);
-        ASSERT_EQUAL(documents_list.size(), 0);
+        auto [words_list, words_status] = server.MatchDocument("кот -пушистый"s, 2);
+        ASSERT_EQUAL(words_list.size(), 0);
     }
     {
-        auto [documents_list, documents_status] = server.MatchDocument("кот модный белый"s, 1);
-        ASSERT_EQUAL(documents_list.size(), 3);
-        vector<string> doc_words_came_back={"белый"s,"кот"s,"модный"s};
-        ASSERT_EQUAL(documents_list,doc_words_came_back);
-        ASSERT(DocumentStatus::ACTUAL == documents_status);
+        auto [words_list, words_status] = server.MatchDocument("кот модный белый"s, 1);
+        ASSERT_EQUAL(words_list.size(), 3);
+        vector<string> doc_words_came_back = {"белый"s, "кот"s, "модный"s};
+        ASSERT_EQUAL(words_list, doc_words_came_back);
+        ASSERT(DocumentStatus::ACTUAL == words_status);
     }
 }
 
-void TestCheckedPushDocuments(){
+void TestCheckedPushDocuments()
+{
     {
         SearchServer search_server;
         ASSERT_EQUAL(search_server.GetDocumentCount(), 0);
@@ -497,43 +498,47 @@ void TestCheckedPushDocuments(){
 void TestSortedRelevanceFromFindTopDocuments()
 {
     {
-        const vector<string> pattern_check={
-                                    "белый кот модный ошейник"s,
-                                    "пушистый кот пушистый хвост"s,
-                                    "ухоженный пёс выразительные глаза"s
-                                    };
-         map<int,vector<int>>  rating_pattern= {
-                                                    {0,{8, -3}},
-                                                    {1,{7, 2, 7}},
-                                                    {2,{5, -12, 2, 1}},
-                                                  };
-        double pattern_size=double(pattern_check.size());
-        map <string,double> pattern_check_idf;
-        pattern_check_idf["пушистый"s]=log(pattern_size/1.0);
-        pattern_check_idf["ухоженный"s]=log(pattern_size/1.0);
-        pattern_check_idf["кот"s]=log(pattern_size/2.0);
+        const vector<string> pattern_check = {
+            "белый кот модный ошейник"s,
+            "пушистый кот пушистый хвост"s,
+            "ухоженный пёс выразительные глаза"s};
+        map<int, vector<int>> rating_pattern = {
+            {0, {8, -3}},
+            {1, {7, 2, 7}},
+            {2, {5, -12, 2, 1}},
+        };
+        double pattern_size = double(pattern_check.size());
+        map<string, double> pattern_check_idf;
+        pattern_check_idf["пушистый"s] = log(pattern_size / 1.0);
+        pattern_check_idf["ухоженный"s] = log(pattern_size / 1.0);
+        pattern_check_idf["кот"s] = log(pattern_size / 2.0);
 
-        map <int,map<string,double>> pattern_check_tf;
-        pattern_check_tf[0]={{"пушистый",0/4.0},{"ухоженный"s,0/4.0},{"кот",1/4.0}};
-        pattern_check_tf[1]={{"пушистый",2/4.0},{"ухоженный"s,0/4.0},{"кот",1/4.0}};
-        pattern_check_tf[2]={{"пушистый",0/4.0},{"ухоженный"s,1/4.0},{"кот",0/4.0}};
+        map<int, map<string, double>> pattern_check_tf;
+        pattern_check_tf[0] = {{"пушистый", 0 / 4.0}, {"ухоженный"s, 0 / 4.0}, {"кот", 1 / 4.0}};
+        pattern_check_tf[1] = {{"пушистый", 2 / 4.0}, {"ухоженный"s, 0 / 4.0}, {"кот", 1 / 4.0}};
+        pattern_check_tf[2] = {{"пушистый", 0 / 4.0}, {"ухоженный"s, 1 / 4.0}, {"кот", 0 / 4.0}};
 
-        vector <Document> pattern_check_tf_idf;
-        for(const auto&[id,x] : pattern_check_tf)
+        vector<Document> pattern_check_tf_idf;
+        for (const auto &[id, x] : pattern_check_tf)
         {
-          double relevante=x.at("пушистый")*pattern_check_idf.at("пушистый")+
-                                         x.at("ухоженный")*pattern_check_idf.at("ухоженный")+
-                                         x.at("кот")*pattern_check_idf.at("кот");
-         double sum =0;
-         for(double s : rating_pattern.at(id) ){
-             sum+=s;
-         }
-         int rating = sum/rating_pattern.at(id).size();
-         // int rating = accumulate(rating_pattern.at(id).begin(), rating_pattern.at(id).end(), 0)/rating_pattern.at(id).size();
+            double relevante = x.at("пушистый") * pattern_check_idf.at("пушистый") +
+                               x.at("ухоженный") * pattern_check_idf.at("ухоженный") +
+                               x.at("кот") * pattern_check_idf.at("кот");
+            double sum = 0;
+            for (double s : rating_pattern.at(id))
+            {
+                sum += s;
+            }
+            int rating = sum / rating_pattern.at(id).size();
+            // Не работает на платформе оставил на всякий случай
+            // int rating = accumulate(rating_pattern.at(id).begin(), rating_pattern.at(id).end(), 0)/rating_pattern.at(id).size();
 
-          pattern_check_tf_idf.push_back({id,relevante,rating});
+            pattern_check_tf_idf.push_back({id, relevante, rating});
         }
+        // Не работает EPSILON на платформе, если не указывать глобально в реализации фремворка кейса.
+        // Если ее сделать глобальной переменной то могу где-то нарушить логику внешнего врапера.
         const double EPSILONEXTERNAL = 1e-6;
+
         sort(pattern_check_tf_idf.begin(), pattern_check_tf_idf.end(),
              [&EPSILONEXTERNAL](const Document &lhs, const Document &rhs)
              {
@@ -548,124 +553,134 @@ void TestSortedRelevanceFromFindTopDocuments()
              });
         SearchServer search_server;
         search_server.SetStopWords("и в на"s);
-        search_server.AddDocument(0,pattern_check[0], DocumentStatus::ACTUAL, rating_pattern[0]);
-        search_server.AddDocument(1,pattern_check[1], DocumentStatus::ACTUAL, rating_pattern[1]);
-        search_server.AddDocument(2,pattern_check[2], DocumentStatus::ACTUAL, rating_pattern[2]);
+        search_server.AddDocument(0, pattern_check[0], DocumentStatus::ACTUAL, rating_pattern[0]);
+        search_server.AddDocument(1, pattern_check[1], DocumentStatus::ACTUAL, rating_pattern[1]);
+        search_server.AddDocument(2, pattern_check[2], DocumentStatus::ACTUAL, rating_pattern[2]);
         vector<Document> document = search_server.FindTopDocuments("пушистый ухоженный кот"s);
         ASSERT_EQUAL(document.size(), 3);
-        ASSERT_HINT(document[0].id == pattern_check_tf_idf[0].id && document[0].relevance ==  pattern_check_tf_idf[0].relevance, "Тест: сортировки по релевантости ");
-        ASSERT_HINT(document[1].id == pattern_check_tf_idf[1].id && document[1].relevance ==  pattern_check_tf_idf[1].relevance, "Тест: сортировки по релевантости ");
-        ASSERT_HINT(document[2].id == pattern_check_tf_idf[2].id && document[2].relevance ==  pattern_check_tf_idf[2].relevance, "Тест: сортировки по релевантости ");
+        ASSERT_HINT(document[0].id == pattern_check_tf_idf[0].id, "Тест: сортировки по релевантости ");
+        ASSERT_HINT(document[1].id == pattern_check_tf_idf[1].id, "Тест: сортировки по релевантости ");
+        ASSERT_HINT(document[2].id == pattern_check_tf_idf[2].id, "Тест: сортировки по релевантости ");
     }
 }
 
-void TestCalcedRelevanceFromFindTopDocuments()
+void TestCalculatedRelevanceFromFindTopDocuments()
 {
-  {
-        const vector<string> pattern_check={
-                                    "белый кот модный ошейник"s,
-                                    "пушистый кот пушистый хвост"s,
-                                    "ухоженный пёс выразительные глаза"s
-                                    };
-         map<int,vector<int>>  rating_pattern= {
-                                                    {0,{8, -3}},
-                                                    {1,{7, 2, 7}},
-                                                    {2,{5, -12, 2, 1}},
-                                                  };
-        double pattern_size=double(pattern_check.size());
-        map <string,double> pattern_check_idf;
-        pattern_check_idf["пушистый"s]=log(pattern_size/1.0);
-        pattern_check_idf["ухоженный"s]=log(pattern_size/1.0);
-        pattern_check_idf["кот"s]=log(pattern_size/2.0);
+     const double EPSILONEXTERNAL = 1e-6;
+    {
+        const vector<string> pattern_check = {
+            "белый кот модный ошейник"s,
+            "пушистый кот пушистый хвост"s,
+            "ухоженный пёс выразительные глаза"s};
+        map<int, vector<int>> rating_pattern = {
+            {0, {8, -3}},
+            {1, {7, 2, 7}},
+            {2, {5, -12, 2, 1}},
+        };
+        double pattern_size = double(pattern_check.size());
+        map<string, double> pattern_check_idf;
+        pattern_check_idf["пушистый"s] = log(pattern_size / 1.0);
+        pattern_check_idf["ухоженный"s] = log(pattern_size / 1.0);
+        pattern_check_idf["кот"s] = log(pattern_size / 2.0);
 
-        map <int,map<string,double>> pattern_check_tf;
-        pattern_check_tf[0]={{"пушистый",0/4.0},{"ухоженный"s,0/4.0},{"кот",1/4.0}};
-        pattern_check_tf[1]={{"пушистый",2/4.0},{"ухоженный"s,0/4.0},{"кот",1/4.0}};
-        pattern_check_tf[2]={{"пушистый",0/4.0},{"ухоженный"s,1/4.0},{"кот",0/4.0}};
+        map<int, map<string, double>> pattern_check_tf;
+        pattern_check_tf[0] = {{"пушистый", 0 / 4.0}, {"ухоженный"s, 0 / 4.0}, {"кот", 1 / 4.0}};
+        pattern_check_tf[1] = {{"пушистый", 2 / 4.0}, {"ухоженный"s, 0 / 4.0}, {"кот", 1 / 4.0}};
+        pattern_check_tf[2] = {{"пушистый", 0 / 4.0}, {"ухоженный"s, 1 / 4.0}, {"кот", 0 / 4.0}};
 
-        vector <Document> pattern_check_tf_idf;
-        for(const auto&[id,x] : pattern_check_tf)
+        vector<Document> pattern_check_tf_idf;
+        for (const auto &[id, x] : pattern_check_tf)
         {
-          double relevante=x.at("пушистый")*pattern_check_idf.at("пушистый")+
-                                         x.at("ухоженный")*pattern_check_idf.at("ухоженный")+
-                                         x.at("кот")*pattern_check_idf.at("кот");
-         double sum =0;
-         for(double s : rating_pattern.at(id) ){
-             sum+=s;
-         }
-         int rating = sum/rating_pattern.at(id).size();
-         //int rating = accumulate(rating_pattern.at(id).begin(), rating_pattern.at(id).end(), 0)/rating_pattern.at(id).size();
+            double relevante = x.at("пушистый") * pattern_check_idf.at("пушистый") +
+                               x.at("ухоженный") * pattern_check_idf.at("ухоженный") +
+                               x.at("кот") * pattern_check_idf.at("кот");
+            double sum = 0;
+            for (double s : rating_pattern.at(id))
+            {
+                sum += s;
+            }
+            int rating = sum / rating_pattern.at(id).size();
+            // int rating = accumulate(rating_pattern.at(id).begin(), rating_pattern.at(id).end(), 0)/rating_pattern.at(id).size();
 
-          pattern_check_tf_idf.push_back({id,relevante,rating});
+            pattern_check_tf_idf.push_back({id, relevante, rating});
         }
-
 
         SearchServer search_server;
         search_server.SetStopWords("и в на"s);
-        search_server.AddDocument(0,pattern_check[0], DocumentStatus::ACTUAL, rating_pattern[0]);
-        search_server.AddDocument(1,pattern_check[1], DocumentStatus::ACTUAL, rating_pattern[1]);
-        search_server.AddDocument(2,pattern_check[2], DocumentStatus::ACTUAL, rating_pattern[2]);
+        search_server.AddDocument(0, pattern_check[0], DocumentStatus::ACTUAL, rating_pattern[0]);
+        search_server.AddDocument(1, pattern_check[1], DocumentStatus::ACTUAL, rating_pattern[1]);
+        search_server.AddDocument(2, pattern_check[2], DocumentStatus::ACTUAL, rating_pattern[2]);
         vector<Document> document = search_server.FindTopDocuments("пушистый ухоженный кот"s);
+        const vector<Document> expectations_documents = {
+                                                            {0, 0.101366, 0},
+                                                            {1, 0.650672, 0},
+                                                            {2, 0.274653, 0},
+                                                        };
         ASSERT_EQUAL(document.size(), 3);
-        int count_in_relevant=0 ;
-        for(Document x :pattern_check_tf_idf)
+        for (const Document &patt_doc : pattern_check_tf_idf)
         {
-            for(Document y :document)
+            for (const Document &doc : document)
             {
-                if(x.id==y.id)
+                if (patt_doc.id == doc.id)
                 {
-                      ASSERT_HINT( x.relevance == y.relevance, "Тест: колькуляции релевантности"s);
-                      ++count_in_relevant;
+                    ASSERT_HINT(doc.relevance == patt_doc.relevance, "Тест: колькуляции релевантности"s);
+                }
+            }
+            for (const Document &doc : expectations_documents)
+            {
+                if (patt_doc.id == doc.id)
+                {
+                    ASSERT_HINT(( patt_doc.relevance-doc.relevance )< EPSILONEXTERNAL, "Тест: колькуляции релевантности c погрешностью"s);
                 }
             }
         }
-        ASSERT_HINT(count_in_relevant==document.size(), "Тест: есть ошибки в расчете релевантности");
     }
 }
 
+// accumulate не подключатся во врапере платформы.
 template <typename T>
 int caccumulate(const T x)
 {
-    double sum =0;
-    for(double s : x )
+    int sum = 0;
+    for (int s : x)
     {
-        sum+=s;
+        sum += s;
     }
     return sum;
 }
-void TestCalcedAvgRatingFromFindTopDocuments()
+void TestCalculatedAvgRatingFromFindTopDocuments()
 {
     {
         SearchServer search_server;
         search_server.SetStopWords("и в на"s);
-        map<int,int> pattern_avg_rating_document;
+        map<int, int> pattern_avg_rating_document;
         vector<int> buff;
 
-        buff={8, -3};
+        buff = {8, -3};
         search_server.AddDocument(0, "белый кот и модный ошейник"s, DocumentStatus::ACTUAL, buff);
-        pattern_avg_rating_document[0]=caccumulate(buff)/buff.size();
+        pattern_avg_rating_document[0] = caccumulate(buff) / buff.size();
 
-        buff={7, 2, 7};
-        search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL,buff);
-        pattern_avg_rating_document[1]=caccumulate(buff)/buff.size();
+        buff = {7, 2, 7};
+        search_server.AddDocument(1, "пушистый кот пушистый хвост"s, DocumentStatus::ACTUAL, buff);
+        pattern_avg_rating_document[1] = caccumulate(buff) / buff.size();
 
-        buff={5, -12, 2, 1};
-        search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL,buff);
-        pattern_avg_rating_document[2]=caccumulate(buff)/buff.size();
+        buff = {5, -12, 2, 1};
+        search_server.AddDocument(2, "ухоженный пёс выразительные глаза"s, DocumentStatus::ACTUAL, buff);
+        pattern_avg_rating_document[2] = caccumulate(buff) / buff.size();
 
-        buff={9};
+        buff = {9};
         search_server.AddDocument(3, "ухоженный скворец евгений"s, DocumentStatus::BANNED, buff);
-        pattern_avg_rating_document[3]=caccumulate(buff)/buff.size();
+        pattern_avg_rating_document[3] = caccumulate(buff) / buff.size();
 
         vector<Document> document = search_server.FindTopDocuments("пушистый ухоженный кот"s);
 
         ASSERT_EQUAL(document.size(), 3);
-        ASSERT_HINT(document[0].id == 1 && document[0].rating == pattern_avg_rating_document.at(1),"Тест:рейтинг:вычисление среднего арефметического");
+        ASSERT_HINT(document[0].id == 1 && document[0].rating == pattern_avg_rating_document.at(1), "Тест:рейтинг:вычисление среднего арефметического");
         ASSERT_HINT(document[1].id == 0 && document[1].rating == pattern_avg_rating_document.at(0), "Тест:рейтинг:вычисление среднего арефметического");
         ASSERT_HINT(document[2].id == 2 && document[2].rating == pattern_avg_rating_document.at(2), "Тест:рейтинг:вычисление среднего арефметического");
     }
 }
-
+// Не правильная форма глагола RUN (Запускать, выполнять).RAN -запустил.
 void TestRanPredicateFromFindTopDocuments()
 {
     SearchServer search_server;
@@ -699,10 +714,9 @@ void TestGotStatusDocumentsFromFindTopDocuments()
 
     {
         vector<Document> document = search_server.FindTopDocuments("пушистый ухоженный кот"s, DocumentStatus::IRRELEVANT);
-        ASSERT_HINT(document.size() == 0,"Таких документов нет");
+        ASSERT_HINT(document.size() == 0, "Таких документов нет");
     }
 }
-
 
 // Функция TestSearchServer является точкой входа для запуска тестов
 void TestSearchServer()
@@ -710,9 +724,9 @@ void TestSearchServer()
     RUN_TEST(TestExcludedStopWordsFromAddedDocumentContent);
     RUN_TEST(TestExcludedSentencesMinusWordsFromAddedDocumentContent);
     RUN_TEST(TestMatchedDocumetsFromMatchDocument);
-    RUN_TEST(TestCalcedRelevanceFromFindTopDocuments);
+    RUN_TEST(TestCalculatedRelevanceFromFindTopDocuments);
     RUN_TEST(TestSortedRelevanceFromFindTopDocuments);
-    RUN_TEST(TestCalcedAvgRatingFromFindTopDocuments);
+    RUN_TEST(TestCalculatedAvgRatingFromFindTopDocuments);
     RUN_TEST(TestRanPredicateFromFindTopDocuments);
     RUN_TEST(TestCheckedPushDocuments);
     RUN_TEST(TestGotStatusDocumentsFromFindTopDocuments);
