@@ -3,6 +3,10 @@
     "cmake.sourceDirectory": "${workspaceFolder}/search-server",
     "files.associations": {
         "**ansible/*.yml": "ansible",
-        "map": "cpp"
-    }
+        "map": "cpp",
+        "ostream": "cpp"
+    },
+    "editor.showFoldingControls": "always",
+    "editor.folding": true,
+    "editor.foldingStrategy": "indentation",
 }

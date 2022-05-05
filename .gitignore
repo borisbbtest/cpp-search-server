@@ -44,3 +44,8 @@ unit-test/main
 .gitignore
 constructor-search-system
 reset-operator-w
+use_exception_code
+optional-code
+try_cath_throw
+search-server_backup
+tmp
