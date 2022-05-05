@@ -106,15 +106,8 @@ public:
                 stop_words_.insert(word);
         }
     }
-    explicit SearchServer(const string &text)
+    explicit SearchServer(const string &text) : SearchServer(SplitIntoWords(text))
     {
-        if (!IsValidWord(text))
-            throw invalid_argument(GetBadChar(text));
-        for (const string &word : SplitIntoWords(text))
-        {
-
-            stop_words_.insert(word);
-        }
     }
 
     void AddDocument(int document_id, const string &document, DocumentStatus status, const vector<int> &ratings)
