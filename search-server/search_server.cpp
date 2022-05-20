@@ -1,7 +1,40 @@
 #include "search_server.h"
 
+void AddDocument(SearchServer &search_server, int document_id, const std::string &document, DocumentStatus status, const std::vector<int> &ratings)
+{
+    using std::string_literals::operator""s;
+    try
+    {
+        search_server.AddDocument(document_id, document, status, ratings);
+    }
+    catch (const std::invalid_argument &e)
+    {
+        std::cout << "Ошибка добавления документа "s << document_id << ": "s << e.what() << std::endl;
+    }
+}
+
+void FindTopDocuments(const SearchServer &search_server, const std::string &raw_query)
+{
+    using std::string_literals::operator""s;
+
+    std::cout << "Результаты поиска по запросу: "s << raw_query << std::endl;
+    try
+    {
+        for (const Document &document : search_server.FindTopDocuments(raw_query))
+        {
+            PrintDocument(document);
+        }
+    }
+    catch (const std::invalid_argument &e)
+    {
+        std::cout << "Ошибка поиска: "s << e.what() << std::endl;
+    }
+}
+
 void SearchServer::AddDocument(int document_id, const std::string &document, DocumentStatus status, const std::vector<int> &ratings)
 {
+    using std::string_literals::operator""s;
+
     if ((document_id < 0) || (documents_.count(document_id) > 0))
     {
         throw std::invalid_argument("Invalid document_id"s);
@@ -89,6 +122,8 @@ bool SearchServer::IsValidWord(const std::string &word)
 
 std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string &text) const
 {
+    using std::string_literals::operator""s;
+
     std::vector<std::string> words;
     for (const std::string &word : SplitIntoWords(text))
     {
@@ -110,16 +145,15 @@ int SearchServer::ComputeAverageRating(const std::vector<int> &ratings)
     {
         return 0;
     }
-    int rating_sum = 0;
-    for (const int rating : ratings)
-    {
-        rating_sum += rating;
-    }
+    // Постоянно эта функция меняется эта функция платформой. Мой код изначально был другим. Я ее правлю постоянно)))
+    int rating_sum = std::accumulate(ratings.begin(), ratings.end(), 0);
     return rating_sum / static_cast<int>(ratings.size());
 }
 
 SearchServer::QueryWord SearchServer::ParseQueryWord(const std::string &text) const
 {
+    using std::string_literals::operator""s;
+    
     if (text.empty())
     {
         throw std::invalid_argument("Query word is empty"s);

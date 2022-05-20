@@ -5,16 +5,16 @@
 #include <cmath>
 #include <vector>
 #include <string>
+#include <numeric>
 #include <set>
 #include "string_processing.h"
 #include "document.h"
 
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 
-using std::string_literals::operator""s;
-
 class SearchServer
 {
+
 public:
     template <typename StringContainer>
     explicit SearchServer(const StringContainer &stop_words);
@@ -45,7 +45,6 @@ private:
     std::vector<std::string> SplitIntoWordsNoStop(const std::string &text) const;
 
     static int ComputeAverageRating(const std::vector<int> &ratings);
-
     struct QueryWord
     {
         std::string data;
@@ -93,6 +92,8 @@ template <typename StringContainer>
 SearchServer::SearchServer(const StringContainer &stop_words)
     : stop_words_(MakeUniqueNonEmptyStrings(stop_words)) // Extract non-empty stop words
 {
+    using std::string_literals::operator""s;
+
     if (!std::all_of(stop_words_.begin(), stop_words_.end(), IsValidWord))
     {
         throw std::invalid_argument("Some of stop words are invalid"s);
@@ -139,3 +140,6 @@ std::vector<Document> SearchServer::FindAllDocuments(const Query &query, Documen
     }
     return matched_documents;
 }
+
+void FindTopDocuments(const SearchServer &search_server, const std::string &raw_query);
+void AddDocument(SearchServer &search_server, int document_id, const std::string &document, DocumentStatus status, const std::vector<int> &ratings);

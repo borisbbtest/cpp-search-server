@@ -1,5 +1,5 @@
 #pragma once
-
+#include <iostream>
 struct Document
 {
     Document() = default;
@@ -16,3 +16,6 @@ enum class DocumentStatus
     BANNED,
     REMOVED,
 };
+
+std::ostream &operator<<(std::ostream &out, const Document &document);
+void PrintDocument(const Document &document);

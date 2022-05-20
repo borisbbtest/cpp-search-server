@@ -24,7 +24,6 @@ private:
     struct QueryResult
     {
         // определите, что должно быть в структуре
-        std::string raw_query;
         bool status_failed;
         int time_set;
     };
@@ -42,7 +41,6 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string &raw_query,
     const std::vector<Document> &res = RequestQueue::search_server_.FindTopDocuments(raw_query, document_predicate);
     RequestQueue::QueryResult buff;
     buff.status_failed = res.empty();
-    buff.raw_query = raw_query;
     now_time++;
     if (min_in_day_ < now_time)
     {
@@ -51,8 +49,7 @@ std::vector<Document> RequestQueue::AddFindRequest(const std::string &raw_query,
     buff.time_set = now_time;
     if (!requests_.empty())
     {
-        int f = requests_.front().time_set;
-        if (now_time == f)
+        if (now_time == requests_.front().time_set)
         {
             requests_.pop_front();
         }
