@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 template <typename Iterator>
 class IteratorRange
 {
@@ -63,3 +64,13 @@ public:
 private:
     std::vector<IteratorRange<Iterator>> pages_;
 };
+
+template <typename Iterator>
+std::ostream &operator<<(std::ostream &out, const IteratorRange<Iterator> &range)
+{
+    for (Iterator it = range.begin(); it != range.end(); ++it)
+    {
+        out << *it;
+    }
+    return out;
+}
