@@ -31,7 +31,6 @@ void FindTopDocuments(const SearchServer &search_server, const std::string &raw_
     }
 }
 
-
 void PrintMatchDocumentResult(int document_id, const std::vector<std::string> &words, DocumentStatus status)
 {
     using std::string_literals::operator""s;
@@ -105,7 +104,7 @@ std::set<int>::const_iterator SearchServer::end() const
     return document_ids_.end();
 }
 
-const std::map<std::string, double>& SearchServer::GetWordFrequencies(int document_id) const
+const std::map<std::string, double> &SearchServer::GetWordFrequencies(int document_id) const
 {
     std::map<int, std::map<std::string, double>>::const_iterator res = document_to_word_freqs_.find(document_id);
     if (res != document_to_word_freqs_.end())
@@ -121,13 +120,13 @@ void SearchServer::RemoveDocument(int document_id)
     std::map<int, std::map<std::string, double>>::iterator dwf_it = document_to_word_freqs_.find(document_id);
     if (dwf_it != document_to_word_freqs_.end())
     {
-        for(const auto& [k,v] :dwf_it->second)
+        for (const auto &[k, v] : dwf_it->second)
         {
-            std::map<std::string, std::map<int, double>>::iterator wdf_it=word_to_document_freqs_.find(k);
-            if(wdf_it != word_to_document_freqs_.end())
+            std::map<std::string, std::map<int, double>>::iterator wdf_it = word_to_document_freqs_.find(k);
+            if (wdf_it != word_to_document_freqs_.end())
             {
                 wdf_it->second.erase(document_id);
-                if(wdf_it->second.size()==0)
+                if (wdf_it->second.size() == 0)
                 {
                     word_to_document_freqs_.erase(k);
                 }
@@ -138,7 +137,6 @@ void SearchServer::RemoveDocument(int document_id)
         document_ids_.erase(document_id);
     }
 }
-
 
 std::vector<Document> SearchServer::FindTopDocuments(const std::string &raw_query) const
 {
@@ -211,8 +209,6 @@ std::vector<std::string> SearchServer::SplitIntoWordsNoStop(const std::string &t
     }
     return words;
 }
-
-
 
 int SearchServer::ComputeAverageRating(const std::vector<int> &ratings)
 {
