@@ -112,6 +112,7 @@ const std::map<std::string, double>& SearchServer::GetWordFrequencies(int docume
     {
         return res->second;
     }
+    static const std::map<std::string, double> dummy;
     return dummy;
 }
 

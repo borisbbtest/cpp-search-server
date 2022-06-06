@@ -18,6 +18,7 @@ class SearchServer
 {
 
 public:
+
     template <typename StringContainer>
     explicit SearchServer(const StringContainer &stop_words);
     explicit SearchServer(const std::string &stop_words_text);
@@ -39,9 +40,8 @@ private:
         int rating;
         DocumentStatus status;
     };
-    const std::set<std::string> stop_words_;
-    const std::map<std::string, double> dummy;
 
+    const std::set<std::string> stop_words_;
     std::map<std::string, std::map<int, double>> word_to_document_freqs_;
     std::map<int, std::map<std::string, double>> document_to_word_freqs_;
     std::map<int, DocumentData> documents_;
