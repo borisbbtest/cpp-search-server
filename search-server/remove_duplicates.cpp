@@ -30,6 +30,6 @@ void RemoveDuplicates(SearchServer &search_server)
     for (int id : id_for_delete)
     {
         search_server.RemoveDocument(id);
-        std::cout << "Found duplicate document id "s << d << std::endl;
+        std::cout << "Found duplicate document id "s << id << std::endl;
     }
 }
