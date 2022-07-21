@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <numeric>
+#include <execution>
 #include <set>
 #include "string_processing.h"
 #include "document.h"
@@ -13,19 +14,19 @@
 const int MAX_RESULT_DOCUMENT_COUNT = 5;
 const double EPSILON = 1e-6;
 
-
 class SearchServer
 {
 
 public:
-
     template <typename StringContainer>
     explicit SearchServer(const StringContainer &stop_words);
     explicit SearchServer(const std::string &stop_words_text);
     std::set<int>::const_iterator begin() const;
     std::set<int>::const_iterator end() const;
-    const std::map<std::string, double>& GetWordFrequencies(int document_id) const;
+    const std::map<std::string, double> &GetWordFrequencies(int document_id) const;
     void RemoveDocument(int document_id);
+    void RemoveDocument(const std::execution::sequenced_policy&, int document_id);
+    void RemoveDocument(const std::execution::parallel_policy&, int document_id);
     void AddDocument(int document_id, const std::string &document, DocumentStatus status, const std::vector<int> &ratings);
     template <typename DocumentPredicate>
     std::vector<Document> FindTopDocuments(const std::string &raw_query, DocumentPredicate document_predicate) const;
@@ -33,6 +34,8 @@ public:
     std::vector<Document> FindTopDocuments(const std::string &raw_query) const;
     int GetDocumentCount() const;
     std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::string &raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::sequenced_policy&,const std::string &raw_query, int document_id) const;
+    std::tuple<std::vector<std::string>, DocumentStatus> MatchDocument(const std::execution::parallel_policy&,const std::string &raw_query, int document_id) const;
 
 private:
     struct DocumentData

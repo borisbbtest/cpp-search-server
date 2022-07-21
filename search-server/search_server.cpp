@@ -117,6 +117,12 @@ const std::map<std::string, double> &SearchServer::GetWordFrequencies(int docume
 
 void SearchServer::RemoveDocument(int document_id)
 {
+
+    RemoveDocument(std::execution::seq, document_id);
+}
+
+void SearchServer::RemoveDocument(const std::execution::sequenced_policy &, int document_id)
+{
     std::map<int, std::map<std::string, double>>::iterator dwf_it = document_to_word_freqs_.find(document_id);
     if (dwf_it != document_to_word_freqs_.end())
     {
@@ -138,6 +144,37 @@ void SearchServer::RemoveDocument(int document_id)
     }
 }
 
+void SearchServer::RemoveDocument(const std::execution::parallel_policy &, int document_id)
+{
+    if (document_to_word_freqs_.count(document_id) == 0)
+    {
+        return;
+    }
+
+    const auto &word_freqs = document_to_word_freqs_.at(document_id);
+    std::vector<std::string> words(word_freqs.size());
+    transform(
+        std::execution::par,
+        word_freqs.begin(), word_freqs.end(),
+        words.begin(),
+        [](const auto &item)
+        {
+            return item.first;
+        });
+
+    std::for_each(
+        std::execution::par,
+        words.begin(),
+        words.end(),
+        [this, document_id](const auto &m)
+        {
+            word_to_document_freqs_.at(m).erase(document_id);
+        });
+    document_to_word_freqs_.erase(document_id);
+    documents_.erase(document_id);
+    document_ids_.erase(document_id);
+}
+
 std::vector<Document> SearchServer::FindTopDocuments(const std::string &raw_query) const
 {
     return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
@@ -149,6 +186,12 @@ int SearchServer::GetDocumentCount() const
 }
 
 std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::string &raw_query, int document_id) const
+{
+
+    return SearchServer::MatchDocument(std::execution::seq, raw_query, document_id);
+}
+
+std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::execution::sequenced_policy &, const std::string &raw_query, int document_id) const
 {
     const auto query = ParseQuery(raw_query);
 
@@ -177,6 +220,37 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
         }
     }
     return {matched_words, documents_.at(document_id).status};
+}
+
+std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument(const std::execution::parallel_policy &, const std::string &raw_query, int document_id) const
+{
+    const auto query = ParseQuery(raw_query);
+
+    const auto status = documents_.at(document_id).status;
+
+    const auto word_checker = [this, document_id](const std::string word)
+    {
+        const auto it = word_to_document_freqs_.find(word);
+        return it != word_to_document_freqs_.end() && it->second.count(document_id);
+    };
+
+    if (std::any_of(std::execution::par, query.minus_words.begin(), query.minus_words.end(), word_checker))
+    {
+        std::vector<std::string> m;
+        return {m, status};
+    }
+
+    std::vector<std::string> matched_words(query.plus_words.size());
+    auto words_end = std::copy_if(
+        std::execution::par,
+        query.plus_words.begin(), query.plus_words.end(),
+        matched_words.begin(),
+        word_checker);
+    std::sort( std::execution::par,matched_words.begin(), words_end);
+    words_end = std::unique( std::execution::par,matched_words.begin(), words_end);
+    matched_words.erase(words_end, matched_words.end());
+
+    return {matched_words, status};
 }
 
 bool SearchServer::IsStopWord(const std::string &word) const

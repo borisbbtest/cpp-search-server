@@ -89,7 +89,9 @@
         "typeinfo": "cpp",
         "valarray": "cpp",
         "variant": "cpp",
-        "stacktrace": "cpp"
+        "stacktrace": "cpp",
+        "expected": "cpp",
+        "spanstream": "cpp"
     },
     "editor.showFoldingControls": "always",
     "editor.folding": true,
