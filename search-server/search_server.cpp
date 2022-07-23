@@ -200,7 +200,7 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     }
     const auto query = ParseQuery(raw_query);
 
-    std::set<std::string> matched_words;
+    std::set<std::string_view> matched_words;
     for (const std::string &word : query.plus_words)
     {
         if (word_to_document_freqs_.count(word) == 0)
