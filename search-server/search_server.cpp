@@ -200,6 +200,18 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
     }
     const auto query = ParseQuery(raw_query);
 
+
+    for (const std::string &word : query.minus_words)
+    {
+        if (word_to_document_freqs_.count(word) == 0)
+        {
+            continue;
+        }
+        if (word_to_document_freqs_.at(word).count(document_id))
+        {
+            break;
+        }
+    }
     std::set<std::string> matched_words;
     for (const std::string &word : query.plus_words)
     {
@@ -210,18 +222,6 @@ std::tuple<std::vector<std::string>, DocumentStatus> SearchServer::MatchDocument
         if (word_to_document_freqs_.at(word).count(document_id))
         {
             matched_words.insert(word);
-        }
-    }
-    for (const std::string &word : query.minus_words)
-    {
-        if (word_to_document_freqs_.count(word) == 0)
-        {
-            continue;
-        }
-        if (word_to_document_freqs_.at(word).count(document_id))
-        {
-            matched_words.clear();
-            break;
         }
     }
     std::vector<std::string> res(matched_words.begin(), matched_words.end());
