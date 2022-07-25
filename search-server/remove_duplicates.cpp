@@ -7,11 +7,11 @@ void RemoveDuplicates(SearchServer &search_server)
 {
     using std::string_literals::operator""s;
     std::vector<int> id_for_delete;
-    std::set<std::set<std::string>> tmp;
+    std::set<std::set<std::string_view>> tmp;
 
     for (const int document_id : search_server)
     {
-        std::set<std::string> buff;
+        std::set<std::string_view> buff;
         for (auto &[word, tf] : search_server.GetWordFrequencies(document_id))
         {
             buff.insert(word);

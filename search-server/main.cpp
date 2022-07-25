@@ -135,5 +135,6 @@ int main()
         // 0 words for document 3
     }
 
+    MatchDocuments(search_server,query);
     return 0;
 }
