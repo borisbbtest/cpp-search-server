@@ -85,12 +85,6 @@ void SearchServer::AddDocument(int document_id, const std::string_view document,
     documents_.at(document_id).word_f = wf;
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string_view raw_query, DocumentStatus status) const
-{
-    return FindTopDocuments(raw_query, [status](int document_id, DocumentStatus document_status, int rating)
-                            { return document_status == status; });
-}
-
 SearchServer::SearchServer(const std::string &stop_words_text)
     : SearchServer(std::string_view(stop_words_text))
 {
@@ -167,11 +161,6 @@ void SearchServer::RemoveDocument(const std::execution::parallel_policy &, int d
     document_ids_.erase(document_id);
 }
 
-std::vector<Document> SearchServer::FindTopDocuments(const std::string_view raw_query) const
-{
-    return FindTopDocuments(raw_query, DocumentStatus::ACTUAL);
-}
-
 int SearchServer::GetDocumentCount() const
 {
     return documents_.size();
@@ -191,7 +180,7 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
         throw std::out_of_range(" Sqe out of range"s);
     }
 
-    const auto query = ParseQuery(raw_query);
+    const auto query = ParseQuery(std::execution::seq, raw_query);
 
     auto status = documents_.at(document_id).status;
 
@@ -232,7 +221,7 @@ std::tuple<std::vector<std::string_view>, DocumentStatus> SearchServer::MatchDoc
         throw std::out_of_range("Par out of range"s);
     }
 
-    const auto query = ParParseQuery(raw_query);
+    const auto query = ParseQuery(std::execution::par, raw_query);
 
     const auto status = documents_.at(document_id).status;
 
@@ -324,7 +313,7 @@ SearchServer::QueryWord SearchServer::ParseQueryWord(std::string_view word) cons
     return {word, is_minus, IsStopWord(word)};
 }
 
-SearchServer::Query SearchServer::ParseQuery(const std::string_view text) const
+SearchServer::Query SearchServer::ParseQuery(const std::execution::sequenced_policy &, const std::string_view text) const
 {
     Query result;
     for (const std::string_view word : SplitIntoWords(text))
@@ -342,13 +331,13 @@ SearchServer::Query SearchServer::ParseQuery(const std::string_view text) const
             }
         }
     }
+
     return result;
 }
 
-SearchServer::ParQuery SearchServer::ParParseQuery(const std::string_view text) const
+SearchServer::ParQuery SearchServer::ParseQuery(const std::execution::parallel_policy &, const std::string_view text) const
 {
     ParQuery result;
-
     for (const std::string_view word : SplitIntoWords(text))
     {
         const auto query_word = ParseQueryWord(word);
@@ -364,10 +353,32 @@ SearchServer::ParQuery SearchServer::ParParseQuery(const std::string_view text) 
             }
         }
     }
+    std::sort(std::execution::par, result.minus_words.begin(), result.minus_words.end());
+    auto last = std::unique(std::execution::par, result.minus_words.begin(), result.minus_words.end());
+    result.minus_words.erase(last, result.minus_words.end());
+
+    std::sort(std::execution::par, result.plus_words.begin(), result.plus_words.end());
+    last = std::unique(std::execution::par, result.plus_words.begin(), result.plus_words.end());
+    result.plus_words.erase(last, result.plus_words.end());
+
     return result;
 }
 
 double SearchServer::ComputeWordInverseDocumentFreq(const std::string_view word) const
 {
     return std::log(GetDocumentCount() * 1.0 / word_to_document_freqs_.at(word).size());
+}
+
+// Обертки по поиску
+
+//старые
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view raw_query, DocumentStatus status) const
+{
+    return FindTopDocuments(std::execution::seq, raw_query, [status](int document_id, DocumentStatus document_status, int rating)
+                            { return document_status == status; });
+}
+
+std::vector<Document> SearchServer::FindTopDocuments(const std::string_view raw_query) const
+{
+    return FindTopDocuments(std::execution::seq, raw_query, DocumentStatus::ACTUAL);
 }
