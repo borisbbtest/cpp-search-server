@@ -36,11 +36,9 @@ operator-reset
 Framework-unit
 unit-test-search-server
 search-server/main
-.vscode
 .gitignore
 unit-test/main.cpp
 unit-test/main
-.vscode/settings.json
 .gitignore
 constructor-search-system
 reset-operator-w
