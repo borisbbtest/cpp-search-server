@@ -36,10 +36,8 @@ operator-reset
 Framework-unit
 unit-test-search-server
 search-server/main
-.gitignore
 unit-test/main.cpp
 unit-test/main
-.gitignore
 constructor-search-system
 reset-operator-w
 use_exception_code
