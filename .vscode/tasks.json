@@ -25,12 +25,17 @@
         },
         {
             "type": "cppbuild",
-            "label": "search-server C/C++: g++ build all file",
+            "label": " C/C++: g++ build all file",
             "command": "/usr/bin/g++",
             "args": [
+                "--std=c++17",
+                //"-lboost_system",
+                //"-lboost_thread",
+                "-pthread",
+                "-ltbb",
                 "-fdiagnostics-color=always",
                 "-g",
-                "${fileDirname}/*.cpp",
+                "*.cpp",
                 "-o",
                 "${fileDirname}/build/main"
             ],

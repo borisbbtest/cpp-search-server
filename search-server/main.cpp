@@ -32,8 +32,7 @@ vector<string> GenerateDictionary(mt19937& generator, int word_count, int max_le
 }
 
 string GenerateQuery(mt19937& generator, const vector<string>& dictionary, int word_count, double minus_prob = 0) {
-    string query;
-    for (int i = 0; i < word_count; ++i) {
+    string query; 
         if (!query.empty()) {
             query.push_back(' ');
         }
